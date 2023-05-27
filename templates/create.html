@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand" href="index.html">Start Bootstrap</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{{ url_for('home') }}">Home</a></li>
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>
+                
+            </ul>
+        </div>
+    </div>
+    
+</nav>
+{%endblock%}
+
+{% block content %}
+    
+    <body>
+        <div class="container">
+            <div class="card">
+                <div class="card-body bg-dark" >
+                    <h1 class="text-center text-light" style='margin-top: 70px;'>New Post</h1>
+                    <form  method="post">
+                        <div class="form-group text-light">
+                            <label for="title">Title:</label>
+                            <input type="text" id="title" name="title" class="form-control" name=title required>
+                        </div>
+
+                        <div class="form-group text-light">
+                            <label for="content">Content:</label>
+                            <textarea id="content" name="content" class="form-control" name=content required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+   
+
+
+{% endblock %}
