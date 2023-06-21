@@ -14,8 +14,13 @@ import os
 from flask_migrate import Migrate
 from datetime import timedelta
 import time
+from slugify import slugify
+import uuid
+import jwt
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
+from flask import jsonify
 
-
+#config
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/flask_blog_db'
@@ -25,7 +30,18 @@ migrate = Migrate(app, db)
 app.permanent_session_lifetime = timedelta(days = 1)
 
 
-class User(db.Model):
+#login managing
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+#models
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
     _id = db.Column('id',db.Integer, primary_key=True)
     username = db.Column(db.String(150))
@@ -37,7 +53,8 @@ class User(db.Model):
         self.email = iemail
         self.password = ipassword
 
-
+    def get_id(self):
+        return str(self._id)
 
 class Article(db.Model):
     __tablename__ = 'article'
@@ -47,14 +64,20 @@ class Article(db.Model):
     slug = db.Column(db.String(100))
     author = db.Column(db.String(50))
 
-
-    def __init__(self, text, iuser, ititle):
-        self.user = iuser
-        self.text = text
-        self.title = ititle
+    def generate_unique_slug(slef):
+        unique_id = str(uuid.uuid4())
+        newslug = slugify(unique_id)
+        return newslug
     
 
+    def __init__(self, text, iuser, ititle):
+        self.author = iuser
+        self.text = text
+        self.title = ititle
+        self.slug = self.generate_unique_slug()
+    
 
+#views
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -99,6 +122,8 @@ def login():
             session["password"] = password
             session["email"] = founded_user.email
             time.sleep(5)
+            print(session['user'])
+            login_user(founded_user)
             return redirect(url_for('home')) 
             
             
@@ -109,20 +134,32 @@ def login():
         
     return render_template("signin.html")
 
+@app.route('/article/<slug>', methods=['GET'])
+@login_required
+def article_detail(slug):
+    post = Article.query.filter_by(slug = slug).first()
+    if post:
+        return render_template("article_detail.html", post=post)
+
 
 @app.route('/')
 def home():
+    print(get_objects_count())
     articles = Article.query.all()
+    
+    user_own = session.get('user')
+    
 
-    return render_template("article_list.html", content=articles)
+    return render_template("article_list.html", content=articles , user= user_own)
 
 @app.route('/create', methods=['GET', 'POST'])
+@login_required
 def create():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
         print(session["user"], '\n', content)
-        new_article = Article(ititle= title, text= content, iuser= session["user"])
+        new_article = Article(ititle= title, text= content, iuser= session.get("user"))
         db.session.add(new_article)
         db.session.commit()
         flash(f'your content has been posted !')
@@ -131,7 +168,21 @@ def create():
     
     return render_template("create.html")
 
+
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    session.clear()
+    return redirect(url_for('login'))
+
+
+@app.route('/objects/count', methods=['GET'])
+@login_required
+def get_objects_count():
+    count = User.query.count()
+    
+    return str(count)
+
 if __name__ == "__main__":
     app.run(debug=True)
-
-
