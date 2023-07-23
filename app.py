@@ -16,14 +16,13 @@ from datetime import timedelta
 import time
 from slugify import slugify
 import uuid
-import jwt
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask import jsonify
 
 #config
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/flask_blog_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mysecretpassword@localhost:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -185,4 +184,4 @@ def get_objects_count():
     return str(count)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0",debug=True, port=5000)

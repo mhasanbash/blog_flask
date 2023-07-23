@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  flask:
+    restart: always
+    build: .
+  
+      # volumes:
+      # - ./blog:/app
+    ports:
+      - 5000:5000
+
+    environment:
+      - DB_URL=postgresql://postgres:postgres@postgres_db:5432/postgres
+
+    tty: true
+    depends_on:
+      - postgres_db 
+
+  postgres_db:
+    container_name: postgres_db
+    restart: always
+    image: postgres:13
+    ports:
+      - 5432:5432
+
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
